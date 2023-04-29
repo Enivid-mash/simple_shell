@@ -8,21 +8,61 @@
  **/
 int main(int argc, char *argv[])
 {
-	char *line = NULL;
-	char **tokens = NULL;
-	(void)argc;
-	(void)argv;
+	int pl;
+	sh_t data;
 
-	while (true)
+	(void)argc, (void)argv;
+	my_memset((void *)&data, 0, sizeof(data));
+	signal(SIGINT, hdl_signal);
+	while (1)
 	{
-		write(1, "$ ", 2);
-		line = line_read();
-		tokens = line_split(line);
+		cm_index(&data);
+		if (ln_read(&data) < 0)
+		{
+			if (isatty(STDIN_FILENO))
+				PRINT("\n");
+			break;
+		}
+		if (ln_split(&data) < 0)
+		{
+			my_free_data(&data);
+			continue;
+		}
+		pl = ln_parse(&data);
+		if (pl == 0)
+		{
+			my_free_data(&data);
+			continue;
+		}
+		if (pl < 0)
+		{
+			err_print(&data);
+			continue;
+		}
+		if (cm_process(&data) < 0)
+		{
+			err_print(&data);
+			break;
+		}
+		my_free_data(&data);
+	}
+	my_free_data(&data);
+	exit(EXIT_SUCCESS);
+}
 
-		if (tokens[0] != NULL)
-			cmd_exec(tokens);
+/**
+ * hdl_signal - handles process signal.
+ * @signo: Signal identifier
+ *
+ * Return: void
+ **/
+void hdl_signal(int signo)
+{
+	if (signo == SIGINT)
 
-		free(tokens);
-		free(line);
+	{
+		PRINT("\n");
+
+		PRINT(PROMPT);
 	}
 }

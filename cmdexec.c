@@ -1,60 +1,39 @@
 #include "main.h"
 
-/**
- * struct builtin - kkdl dd
- * struct builtin builtins[] - kkkkk kkkk
- * @sshell_help: First member
- * @sshell_exit: Second member
- * @sshell_cd: Third member
- * @my_env: Fourth member
- */
-struct builtin builtins[] = {
-	{"help", sshell_help},
-	{"exit", sshell_exit},
-	{"cd", sshell_cd},
-	{"env", my_env},
-};
 
 /**
- * sshell_built_ins - executes commands
- * Return: integer value of registered commands.
+ * cm_process - command executor
+ * @data: Pointer to data Structure.
+ *
+ * Return: +ve on success, -ve otherwise.
  **/
-int sshell_built_ins(void)
+int cm_process(sh_t *data)
 {
-	return (sizeof(builtins) / sizeof(struct builtin));
+	int status;
+	pid_t pid;
+
+	pid = fork();
+	if (pid == 0)
+	{
+		signal(SIGINT, SIG_DFL);
+		if (execve((*data).cmd, (*data).args, environ) < 0)
+			(*data).error_msg = my_strdup("Command Not Found\n");
+		return (FAIL);
+	}
+	else
+	{
+		waitpid(pid, &status, WUNTRACED);
+	}
+	return (0);
 }
 
 /**
- * cmd_exec - executes commands
- * @args: argument from parser
+ * cm_index - indexed command
+ * @data: Pointer to data Structure.
+ *
+ * Return: void
  **/
-void cmd_exec(char **args)
+void cm_index(sh_t *data)
 {
-	int i;
-	pid_t child_pid = fork();
-
-	for (i = 0; i < sshell_built_ins(); i++)
-	{
-		if (_strcmp(args[0], builtins[i].name) == 0)
-		{
-			builtins[i].func(args);
-			return;
-		}
-	}
-	if (child_pid == 0)
-	{
-		execve(args[0], args, environ);
-		perror("./simple_shell");
-		exit(1);
-	}
-	else if (child_pid > 0)
-	{
-		int status;
-
-		do {
-			waitpid(child_pid, &status, WUNTRACED);
-		} while (!WIFEXITED(status) && !WIFSIGNALED(status));
-	}
-	else
-		perror("./simple_shell");
+	(*data).index += 1;
 }
