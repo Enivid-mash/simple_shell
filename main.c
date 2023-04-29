@@ -2,8 +2,6 @@
 
 /**
  * main - main entry with infinite loop
- * @argc: No use
- * @argv: No use
  * Return: 0
  **/
 int main(void)
@@ -11,7 +9,6 @@ int main(void)
 	int pl;
 	sh_t data;
 
-	(void)argc, (void)argv;
 	my_memset((void *)&data, 0, sizeof(data));
 	signal(SIGINT, hdl_signal);
 	while (1)
